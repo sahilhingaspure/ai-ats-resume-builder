@@ -1,0 +1,210 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  resetToken       String?  @map("reset_token")
+  resetTokenExpiry DateTime? @map("reset_token_expiry")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  resumes       Resume[]
+  jobAnalyses   JobAnalysis[]
+
+  @@map("users")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Resume {
+  id        String       @id @default(uuid())
+  userId    String       @map("user_id")
+  title     String
+  version   Int          @default(1)
+  status    ResumeStatus @default(DRAFT)
+  atsScore  Int?         @map("ats_score")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  personalInfo    PersonalInfo?
+  summary         Summary?
+  experiences     Experience[]
+  skills          Skill[]
+  educations      Education[]
+  projects        Project[]
+  templateId      String?       @map("template_id")
+  scoringDetails  ScoringDetail[]
+  optimizations   Optimization[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("resumes")
+}
+
+enum ResumeStatus {
+  DRAFT
+  COMPLETED
+  OPTIMIZED
+}
+
+model PersonalInfo {
+  id        String @id @default(uuid())
+  resumeId  String @unique @map("resume_id")
+  name      String
+  phone     String?
+  email     String
+  linkedin  String?
+  portfolio String?
+  location  String?
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@map("personal_info")
+}
+
+model Summary {
+  id       String @id @default(uuid())
+  resumeId String @unique @map("resume_id")
+  content  String
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@map("summaries")
+}
+
+model Experience {
+  id               String   @id @default(uuid())
+  resumeId         String   @map("resume_id")
+  jobTitle         String   @map("job_title")
+  company          String
+  location         String?
+  startDate        String   @map("start_date")
+  endDate          String?  @map("end_date")
+  current          Boolean  @default(false)
+  responsibilities String[]
+  order            Int      @default(0)
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@map("experiences")
+}
+
+model Skill {
+  id       String        @id @default(uuid())
+  resumeId String        @map("resume_id")
+  name     String
+  category SkillCategory
+  level    Int?          @default(0)
+  order    Int           @default(0)
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@map("skills")
+}
+
+enum SkillCategory {
+  LANGUAGE
+  FRAMEWORK
+  TOOL
+  CLOUD
+  DATABASE
+  SOFT_SKILL
+  OTHER
+}
+
+model Education {
+  id             String  @id @default(uuid())
+  resumeId       String  @map("resume_id")
+  degree         String
+  university     String
+  graduationYear String  @map("graduation_year")
+  gpa            String?
+  order          Int     @default(0)
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@map("educations")
+}
+
+model Project {
+  id           String   @id @default(uuid())
+  resumeId     String   @map("resume_id")
+  name         String
+  description  String
+  technologies String[]
+  githubLink   String?  @map("github_link")
+  order        Int      @default(0)
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@map("projects")
+}
+
+model JobAnalysis {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  jobTitle       String   @map("job_title")
+  company        String?
+  description    String
+  requiredSkills String[] @map("required_skills")
+  keywords       String[]
+  responsibilities String[]
+  importance     Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("job_analyses")
+}
+
+model ScoringDetail {
+  id             String @id @default(uuid())
+  resumeId       String @map("resume_id")
+  keywordMatch   Int    @map("keyword_match")
+  skillsAlign    Int    @map("skills_align")
+  formatting     Int
+  actionVerbs    Int    @map("action_verbs")
+  expRelevance   Int    @map("exp_relevance")
+  totalScore     Int    @map("total_score")
+  suggestions    String[]
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@map("scoring_details")
+}
+
+model Optimization {
+  id           String   @id @default(uuid())
+  resumeId     String   @map("resume_id")
+  type         String
+  original     String
+  optimized    String
+  applied      Boolean  @default(false)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  @@index([resumeId])
+  @@map("optimizations")
+}
