@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "Backend API for AI ATS Resume Builder",
   "main": "dist/server.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "npx prisma generate && tsc",
+    "build": "npx prisma generate && tsc --skipLibCheck",
     "start": "node dist/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
