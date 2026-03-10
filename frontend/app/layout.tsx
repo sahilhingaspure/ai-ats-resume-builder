@@ -2,6 +2,7 @@ import "@/styles/globals.css";
 import type { Metadata } from "next";
 import { AuthProvider } from "@/hooks/useAuth";
 import { Navbar } from "@/components/layout/navbar";
+import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   title: "AI ATS Resume Builder",
@@ -16,6 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Navbar />
           <main className="min-h-[calc(100vh-4rem)]">{children}</main>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
